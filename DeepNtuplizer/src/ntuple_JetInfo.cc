@@ -51,7 +51,15 @@ void ntuple_JetInfo::initBranches(TTree* tree){
     addBranch(tree,"isC",&isC_, "isC_/i");
     addBranch(tree,"isGCC",&isGCC_, "isGCC_/i");
     addBranch(tree,"isCC",&isCC_, "isCC_/i");
-//    addBranch(tree,"isTau",&isTau_, "isTau_/i");
+    addBranch(tree,"isTauH",    &isTauH_,     "isTauH_/i");
+    addBranch(tree,"isTauM",    &isTauM_,     "isTauM_/i");
+    addBranch(tree,"isTauE",    &isTauE_,     "isTauE_/i");
+    addBranch(tree,"isTauHTauH",&isTauHTauH_, "isTauHTauH_/i");
+    addBranch(tree,"isTauHTauM",&isTauHTauM_, "isTauHTauM_/i");
+    addBranch(tree,"isTauHTauE",&isTauHTauE_, "isTauHTauE_/i");
+    addBranch(tree,"isTauMTauM",&isTauMTauM_, "isTauMTauM_/i");
+    addBranch(tree,"isTauMTauE",&isTauMTauE_, "isTauMTauE_/i");
+    addBranch(tree,"isTauETauE",&isTauETauE_, "isTauETauE_/i");
     addBranch(tree,"isUD",&isUD_, "isUD_/i");
     addBranch(tree,"isS",&isS_, "isS_/i");
     addBranch(tree,"isG",&isG_, "isG_/i");
@@ -67,7 +75,15 @@ void ntuple_JetInfo::initBranches(TTree* tree){
     addBranch(tree,"isPhysC",&isPhysC_, "isPhysC_/i");
     addBranch(tree,"isPhysGCC",&isPhysGCC_, "isPhysGCC_/i");
     addBranch(tree,"isPhysCC",&isPhysCC_, "isPhysCC_/i");
-//    addBranch(tree,"isPhysTau",&isPhysTau_, "isPhysTau_/i");
+    addBranch(tree,"isPhysTauH",    &isPhysTauH_,     "isPhysTauH_/i");
+    addBranch(tree,"isPhysTauM",    &isPhysTauM_,     "isPhysTauM_/i");
+    addBranch(tree,"isPhysTauE",    &isPhysTauE_,     "isPhysTauE_/i");
+    addBranch(tree,"isPhysTauHTauH",&isPhysTauHTauH_, "isPhysTauHTauH_/i");
+    addBranch(tree,"isPhysTauHTauM",&isPhysTauHTauM_, "isPhysTauHTauM_/i");
+    addBranch(tree,"isPhysTauHTauE",&isPhysTauHTauE_, "isPhysTauHTauE_/i");
+    addBranch(tree,"isPhysTauMTauM",&isPhysTauMTauM_, "isPhysTauMTauM_/i");
+    addBranch(tree,"isPhysTauMTauE",&isPhysTauMTauE_, "isPhysTauMTauE_/i");
+    addBranch(tree,"isPhysTauETauE",&isPhysTauETauE_, "isPhysTauETauE_/i");
     addBranch(tree,"isPhysUD",&isPhysUD_, "isPhysUD_/i");
     addBranch(tree,"isPhysS",&isPhysS_, "isPhysS_/i");
     addBranch(tree,"isPhysG",&isPhysG_, "isPhysG_/i");
@@ -241,7 +257,7 @@ void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
             }
         }
 
-        if(id == 15 && false){
+        if(id == 15){
             alltaus_.push_back(gen);
         }
 
@@ -298,7 +314,9 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 
     //std::vector<Ptr<pat::Jet> > p= coll->ptrs();
 
-    isB_=0; isGBB_=0; isBB_=0; isC_=0; isGCC_=0; isCC_=0; isUD_=0;isTau_=0;
+    isB_=0; isGBB_=0; isBB_=0; isC_=0; isGCC_=0; isCC_=0; isUD_=0; isTau_=0; isTauTau_=0;
+    isTauH_=0; isTauM_=0; isTauE_=0;
+    isTauHTauH_=0; isTauHTauM_=0; isTauHTauE_=0; isTauMTauM_=0; isTauMTauE_=0; isTauETauE_=0;
     isS_=0; isG_=0, isLeptonicB_=0, isLeptonicB_C_=0, isUndefined_=0;
     auto muIds = deep_ntuples::jet_muonsIds(jet,*muonsHandle);
     auto elecIds = deep_ntuples::jet_electronsIds(jet,*electronsHandle);
@@ -342,6 +360,16 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
         case deep_ntuples::JetFlavor::GCC: isGCC_=1; break;
         case deep_ntuples::JetFlavor::CC: isCC_=1; break;
         case deep_ntuples::JetFlavor::TAU: isTau_=1;break;
+        case deep_ntuples::JetFlavor::TAUTAU: isTauTau_=1;break;
+        case deep_ntuples::JetFlavor::TAUH: isTauH_=1;break;
+        case deep_ntuples::JetFlavor::TAUM: isTauM_=1;break;
+        case deep_ntuples::JetFlavor::TAUE: isTauE_=1;break;
+        case deep_ntuples::JetFlavor::TAUHTAUH: isTauHTauH_=1;break;
+        case deep_ntuples::JetFlavor::TAUHTAUM: isTauHTauM_=1;break;
+        case deep_ntuples::JetFlavor::TAUHTAUE: isTauHTauE_=1;break;
+        case deep_ntuples::JetFlavor::TAUMTAUM: isTauMTauM_=1;break;
+        case deep_ntuples::JetFlavor::TAUMTAUE: isTauMTauE_=1;break;
+        case deep_ntuples::JetFlavor::TAUETAUE: isTauETauE_=1;break;
         case deep_ntuples::JetFlavor::G:  isG_=1; break;
         case deep_ntuples::JetFlavor::UD: isUD_=1; break;
         case deep_ntuples::JetFlavor::S:  isS_=1; break;
@@ -353,7 +381,8 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     //// Note that jets with gluon->bb (cc) and x->bb (cc) are in the same categories
     isPhysB_=0; isPhysBB_=0; isPhysGBB_=0; isPhysC_=0; isPhysCC_=0;
     isPhysGCC_=0; isPhysUD_=0; isPhysS_=0; isPhysG_=0, isPhysLeptonicB_=0, isPhysLeptonicB_C_=0, isPhysUndefined_=0;
-    isPhysTau_=0;
+    isPhysTau_=0; isPhysTauTau_=0; isPhysTauH_=0; isPhysTauM_=0; isPhysTauE_=0;
+    isPhysTauHTauH_=0; isPhysTauHTauM_=0; isPhysTauHTauE_=0; isPhysTauMTauM_=0; isPhysTauMTauE_=0; isPhysTauETauE_=0;
     if(jet.genJet()!=NULL){
         switch(deep_ntuples::jet_flavour(jet, gToBB, gToCC, neutrinosLepB, neutrinosLepB_C, alltaus_,true)) {
         case deep_ntuples::JetFlavor::UD: isPhysUD_=1; break;
@@ -365,6 +394,16 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
         case deep_ntuples::JetFlavor::CC: isPhysCC_=1; break;
         case deep_ntuples::JetFlavor::GCC: isPhysGCC_=1; break;
         case deep_ntuples::JetFlavor::TAU: isPhysTau_=1;break;
+        case deep_ntuples::JetFlavor::TAUTAU: isPhysTauTau_=1;break;
+        case deep_ntuples::JetFlavor::TAUH: isPhysTauH_=1;break;
+        case deep_ntuples::JetFlavor::TAUM: isPhysTauM_=1;break;
+        case deep_ntuples::JetFlavor::TAUE: isPhysTauE_=1;break;
+        case deep_ntuples::JetFlavor::TAUHTAUH: isPhysTauHTauH_=1;break;
+        case deep_ntuples::JetFlavor::TAUHTAUM: isPhysTauHTauM_=1;break;
+        case deep_ntuples::JetFlavor::TAUHTAUE: isPhysTauHTauE_=1;break;
+        case deep_ntuples::JetFlavor::TAUMTAUM: isPhysTauMTauM_=1;break;
+        case deep_ntuples::JetFlavor::TAUMTAUE: isPhysTauMTauE_=1;break;
+        case deep_ntuples::JetFlavor::TAUETAUE: isPhysTauETauE_=1;break;
         case deep_ntuples::JetFlavor::G:  isPhysG_=1; break;
         case deep_ntuples::JetFlavor::LeptonicB: isPhysLeptonicB_=1; break;
         case deep_ntuples::JetFlavor::LeptonicB_C: isPhysLeptonicB_C_=1; break;

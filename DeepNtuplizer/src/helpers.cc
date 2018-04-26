@@ -88,24 +88,107 @@ JetFlavor jet_flavour(const pat::Jet& jet,
     }
     else { //not a heavy jet
         if(alltaus.size()>0){ //check for tau in a simplistic way
-            bool ishadrtaucontained=true;
+            int ntauhaddm0 = 0;
+            int ntauhaddm1 = 0;
+            int ntauhaddm10 = 0;
+            int ntaumu = 0;
+            int ntaue = 0;
+            float drMatch = 0.4;
             for(const auto& p:alltaus){
                 size_t ndau=p.numberOfDaughters();
+                int npi0 = 0;
+                int nch = 0;
                 for(size_t i=0;i<ndau;i++){
                     const reco::Candidate* dau=p.daughter(i);
                     int daupid=std::abs(dau->pdgId());
-                    if(daupid == 13 || daupid == 11){
-                        ishadrtaucontained=false;
-                        break;
+                    int dauch = dau->charge();
+                    if (reco::deltaR(*dau,jet) > drMatch) continue;
+                    if(daupid == 13){
+                        ntaumu++;
                     }
-                    if(daupid != 12 && daupid!=14 && daupid!=16 &&
-                            reco::deltaR(*dau,jet) > 0.4){
-                        ishadrtaucontained=false;
-                        break;
+                    else if(daupid == 11){
+                        ntaue++;
+                    }
+                    else if(daupid != 12 && daupid!=14 && daupid!=16) {
+                        if(dauch) {
+                            nch++;
+                        }
+                        else {
+                            npi0++;
+                        }
                     }
                 }
+                if (nch==1) {
+                    if (npi0) {
+                        ntauhaddm1++;
+                    }
+                    else {
+                        ntauhaddm0++;
+                    }
+                }
+                else if(nch==3) {
+                    ntauhaddm10++;
+                }
             }
-            if(ishadrtaucontained) return JetFlavor::TAU;
+            int ntauhad = ntauhaddm0+ntauhaddm1+ntauhaddm10;
+            int ntau = ntauhad+ntaue+ntaumu;
+            bool doSimple = false;
+            bool doEM = true;
+            bool doDM = false;
+            if (doSimple) {
+                if (doEM) {
+                    if (ntau>1) return JetFlavor::TAUTAU;
+                }
+                else {
+                    if (ntauhad>1) return JetFlavor::TAUTAU;
+                }
+                if (ntauhad)   return JetFlavor::TAU;
+            }
+            else {
+                // TAU TAU
+                if (doDM) {
+                    if (ntauhaddm0>1)                    return JetFlavor::TAUH0TAUH0;
+                    if (ntauhaddm1>1)                    return JetFlavor::TAUH1TAUH1;
+                    if (ntauhaddm10>1)                   return JetFlavor::TAUH10TAUH10;
+                    if (ntauhaddm0==1 && ntauhaddm1==1)  return JetFlavor::TAUH0TAUH1;
+                    if (ntauhaddm0==1 && ntauhaddm10==1) return JetFlavor::TAUH0TAUH10;
+                    if (ntauhaddm1==1 && ntauhaddm10==1) return JetFlavor::TAUH1TAUH10;
+                    if (doEM) {
+                        if (ntauhaddm0==1 && ntaumu==1)  return JetFlavor::TAUH0TAUM;
+                        if (ntauhaddm1==1 && ntaumu==1)  return JetFlavor::TAUH1TAUM;
+                        if (ntauhaddm10==1 && ntaumu==1) return JetFlavor::TAUH10TAUM;
+                        if (ntauhaddm0==1 && ntaue==1)   return JetFlavor::TAUH0TAUE;
+                        if (ntauhaddm1==1 && ntaue==1)   return JetFlavor::TAUH1TAUE;
+                        if (ntauhaddm10==1 && ntaue==1)  return JetFlavor::TAUH10TAUE;
+                    }
+                }
+                else {
+                    if (ntauhad>1)                       return JetFlavor::TAUHTAUH;
+                    if (doEM) {
+                        if (ntauhad==1 && ntaumu==1)     return JetFlavor::TAUHTAUM;
+                        if (ntauhad==1 && ntaue==1)      return JetFlavor::TAUHTAUE;
+                    }
+                }
+                if (doEM) {
+                    if (ntaumu>1)                        return JetFlavor::TAUMTAUM;
+                    if (ntaue>1)                         return JetFlavor::TAUETAUE;
+                    if (ntaumu==1 && ntaue==1)           return JetFlavor::TAUMTAUE;
+                }
+                // TAU
+                if (doDM) {
+                    if (ntauhaddm0)                      return JetFlavor::TAUH0;
+                    if (ntauhaddm1)                      return JetFlavor::TAUH1;
+                    if (ntauhaddm10)                     return JetFlavor::TAUH10;
+                }
+                else {
+                    if (ntauhad)                         return JetFlavor::TAUH;
+                }
+                if (doEM) {
+                   if (ntaumu)                           return JetFlavor::TAUM;
+                   if (ntaue)                            return JetFlavor::TAUE;
+                }
+            }
+
         }
         if(std::abs(pflav) == 4 || std::abs(pflav) == 5 || nbs || ncs) {
             if(usePhysForLightAndUndefined){

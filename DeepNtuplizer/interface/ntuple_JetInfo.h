@@ -152,6 +152,16 @@ public:
     int isLeptonicB_;
     int isLeptonicB_C_;
     int isTau_;
+    int isTauTau_;
+    int isTauH_;
+    int isTauM_;
+    int isTauE_;
+    int isTauHTauH_;
+    int isTauHTauM_;
+    int isTauHTauE_;
+    int isTauMTauM_;
+    int isTauMTauE_;
+    int isTauETauE_;
 
     //truth labeling with fallback to physics definition for light/gluon/undefined of standard flavor definition
     int isPhysB_;
@@ -167,6 +177,16 @@ public:
     int isPhysLeptonicB_;
     int isPhysLeptonicB_C_;
     int isPhysTau_;
+    int isPhysTauTau_;
+    int isPhysTauH_;
+    int isPhysTauM_;
+    int isPhysTauE_;
+    int isPhysTauHTauH_;
+    int isPhysTauHTauM_;
+    int isPhysTauHTauE_;
+    int isPhysTauMTauM_;
+    int isPhysTauMTauE_;
+    int isPhysTauETauE_;
 
     // global variables
     float npv_;

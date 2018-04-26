@@ -12,6 +12,7 @@ options.register('maxEvents',-1,VarParsing.VarParsing.multiplicity.singleton,Var
 options.register('skipEvents', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "skip N events")
 options.register('job', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "job number")
 options.register('nJobs', 1, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "total jobs")
+options.register('release','8_0_1', VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"release number (w/o CMSSW)")
 options.register('gluonReduction', 0.0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.float, "gluon reduction")
 
 options.register(
@@ -53,8 +54,8 @@ process.options = cms.untracked.PSet(
 
 from PhysicsTools.PatAlgos.patInputFiles_cff import filesRelValTTbarPileUpMINIAODSIM
 
-#process.load('DeepNTuples.DeepNtuplizer.samples.TTJetsPhase1_cfg') #default input
-process.load('DeepNTuples.DeepNtuplizer.samples.QCD_Pt_600to800Phase1_cfg') #default input
+process.load('DeepNTuples.DeepNtuplizer.samples.TTJetsPhase1_cfg') #default input
+#process.load('DeepNTuples.DeepNtuplizer.samples.QCD_Pt_600to800Phase1_cfg') #default input
 #process.load('DeepNTuples.DeepNtuplizer.samples.BGHH4b_narrow_M3000_Phase1_cfg') #default input
 
 
@@ -79,24 +80,46 @@ process.maxEvents  = cms.untracked.PSet(
     input = cms.untracked.int32 (options.maxEvents) 
 )
 
+if int(options.release.replace("_",""))>=800 :
+ bTagInfos = [
+        'pfImpactParameterTagInfos',
+        'pfInclusiveSecondaryVertexFinderTagInfos',
+        'pfDeepCSVTagInfos',
+ ]
+else :
+ bTagInfos = [
+        'pfImpactParameterTagInfos',
+        'pfInclusiveSecondaryVertexFinderTagInfos',
+        'deepNNTagInfos',
+ ]
 
-bTagInfos = [
-  'pfImpactParameterTagInfos',
-  'pfInclusiveSecondaryVertexFinderTagInfos',
-  'deepNNTagInfos',
-]
-bTagDiscriminators = [
-  'softPFMuonBJetTags',
-  'softPFElectronBJetTags',
-  'pfJetBProbabilityBJetTags',
-  'pfJetProbabilityBJetTags',
-  'pfCombinedInclusiveSecondaryVertexV2BJetTags',
-  'deepFlavourJetTags:probudsg', #to be fixed with new names
-  'deepFlavourJetTags:probb', 
-  'deepFlavourJetTags:probc', 
-  'deepFlavourJetTags:probbb', 
-  'deepFlavourJetTags:probcc',
-]
+if int(options.release.replace("_",""))>=800 :
+ bTagDiscriminators = [
+     'softPFMuonBJetTags',
+     'softPFElectronBJetTags',
+         'pfJetBProbabilityBJetTags',
+         'pfJetProbabilityBJetTags',
+     'pfCombinedInclusiveSecondaryVertexV2BJetTags',
+         'pfDeepCSVJetTags:probudsg', #to be fixed with new names
+         'pfDeepCSVJetTags:probb',
+         'pfDeepCSVJetTags:probc',
+         'pfDeepCSVJetTags:probbb',
+         'pfDeepCSVJetTags:probcc',
+ ]
+else :
+  bTagDiscriminators = [
+     'softPFMuonBJetTags',
+     'softPFElectronBJetTags',
+         'pfJetBProbabilityBJetTags',
+         'pfJetProbabilityBJetTags',
+     'pfCombinedInclusiveSecondaryVertexV2BJetTags',
+         'deepFlavourJetTags:probudsg', #to be fixed with new names
+         'deepFlavourJetTags:probb',
+         'deepFlavourJetTags:probc',
+         'deepFlavourJetTags:probbb',
+         'deepFlavourJetTags:probcc',
+ ]
+
 jetCorrectionsAK4 = ('AK4PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None')
 
 jetCorrectionsAK8 = ('AK8PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None')
@@ -341,6 +364,10 @@ process.TFileService = cms.Service("TFileService",
 process.load("DeepNTuples.DeepNtuplizer.DeepNtuplizer_cfi")
 process.deepntuplizer.jets = cms.InputTag('selectedUpdatedPatJetsDeepFlavour');
 process.deepntuplizer.bDiscriminators = bTagDiscriminators 
+
+if int(options.release.replace("_",""))>=800 :
+   process.deepntuplizer.tagInfoName = cms.string('pfDeepCSV')
+
 process.deepntuplizer.bDiscriminators.append('pfCombinedMVAV2BJetTags')
 process.deepntuplizer.LooseSVs = cms.InputTag("looseIVFinclusiveCandidateSecondaryVertices")
 process.deepntuplizer.gluonReduction  = cms.double(options.gluonReduction)

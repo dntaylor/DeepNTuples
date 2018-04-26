@@ -12,6 +12,7 @@ options.register('maxEvents',-1,VarParsing.VarParsing.multiplicity.singleton,Var
 options.register('skipEvents', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "skip N events")
 options.register('job', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "job number")
 options.register('nJobs', 1, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "total jobs")
+options.register('release','8_0_1', VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"release number (w/o CMSSW)")
 options.register('gluonReduction', 0.0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.float, "gluon reduction")
 
 import os
@@ -87,7 +88,7 @@ process.maxEvents  = cms.untracked.PSet(
 )
 
 
-if int(release.replace("_",""))>=840 :
+if int(release.replace("_",""))>=800 :
  bTagInfos = [
         'pfImpactParameterTagInfos',
         'pfInclusiveSecondaryVertexFinderTagInfos',
@@ -101,7 +102,7 @@ else :
  ]
 
 
-if int(release.replace("_",""))>=840 :
+if int(release.replace("_",""))>=800 :
  bTagDiscriminators = [
      'softPFMuonBJetTags',
      'softPFElectronBJetTags',
@@ -259,7 +260,7 @@ process.deepntuplizer.bDiscriminators = bTagDiscriminators
 process.deepntuplizer.bDiscriminators.append('pfCombinedMVAV2BJetTags')
 process.deepntuplizer.bDiscriminators.append('pfBoostedDoubleSecondaryVertexAK8BJetTags')
 process.deepntuplizer.LooseSVs = cms.InputTag("looseIVFinclusiveCandidateSecondaryVertices")
-if int(release.replace("_",""))>=840 :
+if int(release.replace("_",""))>=800 :
    process.deepntuplizer.tagInfoName = cms.string('pfDeepCSV')
 
 

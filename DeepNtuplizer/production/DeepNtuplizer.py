@@ -83,7 +83,7 @@ process.maxEvents  = cms.untracked.PSet(
     input = cms.untracked.int32 (options.maxEvents) 
 )
 
-if int(release.replace("_",""))>=840 :
+if int(release.replace("_",""))>=800 :
  bTagInfos = [
 	'pfImpactParameterTagInfos',
 	'pfInclusiveSecondaryVertexFinderTagInfos',
@@ -96,7 +96,7 @@ else :
  ]
 
 
-if int(release.replace("_",""))>=840 :
+if int(release.replace("_",""))>=800 :
  bTagDiscriminators = [
      'softPFMuonBJetTags',
      'softPFElectronBJetTags',
@@ -223,7 +223,7 @@ process.deepntuplizer.LooseSVs = cms.InputTag("looseIVFinclusiveCandidateSeconda
 
 process.deepntuplizer.applySelection = cms.bool(options.selectJets)
 
-if int(release.replace("_",""))>=840 :
+if int(release.replace("_",""))>=800 :
    process.deepntuplizer.tagInfoName = cms.string('pfDeepCSV')
 
 
