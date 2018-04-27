@@ -263,6 +263,7 @@ bool ntuple_pfCands::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     TrackInfoBuilder trackinfo(builder);
     //create collection first, to be able to do some sorting
     for (unsigned int i = 0; i <  jet.numberOfDaughters(); i++){
+
         const pat::PackedCandidate* PackedCandidate = dynamic_cast<const pat::PackedCandidate*>(jet.daughter(i));
         if(PackedCandidate){
 
@@ -290,7 +291,6 @@ bool ntuple_pfCands::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 
         sortedchargedindices=sorting::invertSortingVector(sortedcharged);
         sortedneutralsindices=sorting::invertSortingVector(sortedneutrals);
-
 
 
 
