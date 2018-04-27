@@ -268,8 +268,11 @@ void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
 //use either of these functions
 
 bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, const edm::View<pat::Jet> * coll){
-    if(!coll)
-        throw std::runtime_error("ntuple_JetInfo::fillBranches: no jet collection");
+    if(!coll) {
+        std::cout<<"ntuple_JetInfo::fillBranches: no jet collection"<<std::endl;
+        return false;
+        //throw std::runtime_error("ntuple_JetInfo::fillBranches: no jet collection");
+    }
 
     /// cuts ///
     bool returnval=true;
@@ -425,12 +428,12 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     jet_corr_pt_ = jet.pt();
     jet_mass_ = jet.mass();
     jet_energy_ = jet.energy();
-    int iterIndex = 0;
+    size_t iterIndex = 0;
 
     genDecay_ = -1.;
     // std::cout << "looking for a B"<<jet.eta()<< " "<<jet.phi() <<std::endl;
     for  (std::vector<reco::GenParticle>::const_iterator it = Bhadron_.begin(); it != Bhadron_.end(); ++it){
-      if(reco::deltaR(it->eta(),it->phi(),jet.eta(),jet.phi()) < 0.4) 
+      if(reco::deltaR(it->eta(),it->phi(),jet.eta(),jet.phi()) < 0.4 && iterIndex<Bhadron_daughter_.size()) 
 	{
 	  //  std::cout <<it->eta()<<" "<<it->phi()<< " "<<reco::deltaR(it->eta(),it->phi(),jet.eta(),jet.phi())<<" "<< sqrt(Bhadron_daughter_[iterIndex].vx()*Bhadron_daughter_[iterIndex].vx()+Bhadron_daughter_[iterIndex].vy()*Bhadron_daughter_[iterIndex].vy())<< " dXY "<<  iterIndex << std::endl;
 	  if(Bhadron_daughter_[iterIndex].vx()!=it->vx()){
