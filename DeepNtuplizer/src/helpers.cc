@@ -231,10 +231,23 @@ std::tuple<int, int, int, float, float, float, float> calcVariables(const reco::
 
     //  TVector3 _pull1(0, 0, 0);
     //  TVector3 _pull2(0, 0, 0);
+    //
+    std::vector<const pat::PackedCandidate*> constituents;
+    for ( unsigned ida = 0; ida < jet->numberOfDaughters(); ++ida ) {
+      reco::Candidate const * cand = jet->daughter(ida);
+      if ( cand->numberOfDaughters() == 0 )
+        constituents.push_back( dynamic_cast<const pat::PackedCandidate*>(cand) ) ;
+      else {
+        for ( unsigned jda = 0; jda < cand->numberOfDaughters(); ++jda ) {
+          reco::Candidate const * cand2 = cand->daughter(jda);
+          constituents.push_back( dynamic_cast<const pat::PackedCandidate*>(cand2) );
+        }
+      }
+    }
 
     //Loop over the jet constituents
-    for (unsigned int i = 0; i <  jet->numberOfDaughters(); i++){
-        const pat::PackedCandidate* daughter = dynamic_cast<const pat::PackedCandidate*>(jet->daughter(i));
+    for (auto dau : constituents){
+        const pat::PackedCandidate* daughter = dynamic_cast<const pat::PackedCandidate*>(dau);
         if(daughter){                                        //packed candidate situation
             auto part = static_cast<const pat::PackedCandidate*>(daughter);
 

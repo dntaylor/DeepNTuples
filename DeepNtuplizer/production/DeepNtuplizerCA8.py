@@ -124,7 +124,20 @@ jetCorrectionsAK4 = ('AK4PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'Non
 
 jetCorrectionsAK8 = ('AK8PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None')
 
-from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
+## Filter out neutrinos from packed GenParticles
+process.packedGenParticlesForJetsNoNu = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedGenParticles"), cut = cms.string("abs(pdgId) != 12 && abs(pdgId) != 14 && abs(pdgId) != 16"))
+
+## Define GenJets
+from RecoJets.JetProducers.ak4GenJets_cfi import ak4GenJets
+process.ca8GenJetsNoNu = ak4GenJets.clone(src = 'packedGenParticlesForJetsNoNu', rParam = 0.8, jetAlgorithm = cms.string("CambridgeAachen"), jetPtMin = cms.double(8.0))
+
+## Select charged hadron subtracted packed PF candidates
+process.pfCHS = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV"))
+from RecoJets.JetProducers.ak4PFJets_cfi import ak4PFJets
+## Define PFJetsCHS
+process.ca8PFJetsCHS = ak4PFJets.clone(src = 'pfCHS', doAreaFastjet = True, rParam = 0.8, jetAlgorithm = cms.string("CambridgeAachen"), jetPtMin = cms.double(8.0))
+
+from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection, addJetCollection
 updateJetCollection(
         process,
         labelName = "DeepFlavour",
@@ -140,10 +153,10 @@ updateJetCollection(
         explicitJTA = False
 )
 
-updateJetCollection(
+addJetCollection(
         process,
-        labelName = "AK8DeepFlavour",
-        jetSource = cms.InputTag('slimmedJetsAK8'),#'ak4Jets'
+        labelName = "CA8DeepFlavour",
+        jetSource = cms.InputTag('ca8PFJetsCHS'),#'ak4Jets'
         jetCorrections = jetCorrectionsAK8,
         pfCandidates = cms.InputTag('packedPFCandidates'),
         pvSource = cms.InputTag("offlineSlimmedPrimaryVertices"),
@@ -152,8 +165,13 @@ updateJetCollection(
         elSource = cms.InputTag('slimmedElectrons'),
         btagInfos = bTagInfos,
         btagDiscriminators = bTagDiscriminators,
-        explicitJTA = False
+        genJetCollection = cms.InputTag('ca8GenJetsNoNu'),
+        genParticles = cms.InputTag('prunedGenParticles'),
+        explicitJTA = False,
+        algo = 'CA',
+        rParam = 0.8
 )
+process.load('RecoBTag.Combined.deepFlavour_cff')
 
 updateJetCollection(
     process,
@@ -173,6 +191,16 @@ updateJetCollection(
     rParam=0.8, # needed for subjet b tagging
     algo='AK',              # has to be defined but is not used since svClustering=False
 )
+process.patJetsCA8DeepFlavour.addTagInfos = cms.bool(True)
+
+
+#if not hasattr( process, 'pfImpactParameterTagInfos' ):
+#    process.load('RecoBTag.ImpactParameter.pfImpactParameterTagInfos_cfi')
+#if not hasattr( process, 'pfSecondaryVertexTagInfos' ):
+#    process.load('RecoBTag.SecondaryVertex.pfSecondaryVertexTagInfos_cfi')
+#if not hasattr( process, 'pfInclusiveSecondaryVertexFinderTagInfos' ):
+#    process.load('RecoBTag.SecondaryVertex.pfInclusiveSecondaryVertexFinderTagInfos_cfi')
+
 
 if hasattr(process,'updatedPatJetsTransientCorrectedDeepFlavour'):
   process.updatedPatJetsTransientCorrectedDeepFlavour.addTagInfos = cms.bool(True) 
@@ -187,11 +215,11 @@ if hasattr(process,'updatedPatJetsTransientCorrectedSoftDropSubjetsDeepFlavour')
 else:
   raise ValueError('I could not find updatedPatJetsTransientCorrectedSoftDropSubjetsDeepFlavour to embed the tagInfos, please check the cfg')
 
-if hasattr(process,'updatedPatJetsTransientCorrectedAK8DeepFlavour'):
-  process.updatedPatJetsTransientCorrectedAK8DeepFlavour.addTagInfos = cms.bool(True) 
-  process.updatedPatJetsTransientCorrectedAK8DeepFlavour.addBTagInfo = cms.bool(True)
-else:
-  raise ValueError('I could not find updatedPatJetsTransientCorrectedAK8DeepFlavour to embed the tagInfos, please check the cfg')
+#if hasattr(process,'updatedPatJetsTransientCorrectedCA8DeepFlavour'):
+#  process.updatedPatJetsTransientCorrectedCA8DeepFlavour.addTagInfos = cms.bool(True) 
+#  process.updatedPatJetsTransientCorrectedCA8DeepFlavour.addBTagInfo = cms.bool(True)
+#else:
+#  raise ValueError('I could not find updatedPatJetsTransientCorrectedCA8DeepFlavour to embed the tagInfos, please check the cfg')
 
 # QGLikelihood
 process.load("DeepNTuples.DeepNtuplizer.QGLikelihood_cfi")
@@ -205,8 +233,9 @@ process.QGTaggerSubJet = process.QGTagger.clone(
     jetsLabel = cms.string('QGL_AK4PFchs'),
     )
 
-process.QGTaggerAK8 = process.QGTagger.clone(
-    srcJets = cms.InputTag("selectedUpdatedPatJetsAK8DeepFlavour"), 
+process.QGTaggerCA8 = process.QGTagger.clone(
+    #srcJets = cms.InputTag("selectedUpdatedPatJetsCA8DeepFlavour"), 
+    srcJets = cms.InputTag("selectedPatJetsCA8DeepFlavour"), 
     jetsLabel = cms.string('QGL_AK4PFchs'),
     )
 
@@ -244,21 +273,22 @@ process.patGenJetMatchRecluster = cms.EDProducer("GenJetMatcher",  # cut on delt
     resolveByMatchQuality = cms.bool(False),         # False = just match input in order; True = pick lowest deltaR pair first          
 )
 
-process.ak8GenJetsRecluster = ak4GenJets.clone(
+process.ca8GenJetsRecluster = ak4GenJets.clone(
     src = 'packedGenParticlesForJetsNoNu',
-    jetAlgorithm = 'AntiKt',
+    jetAlgorithm = 'CambridgeAachen',
     rParam = cms.double(0.8), 
     )
 
-process.ak8GenJetsWithNu = ak4GenJets.clone(
+process.ca8GenJetsWithNu = ak4GenJets.clone(
     src = 'packedGenParticles',
-    jetAlgorithm = 'AntiKt',
+    jetAlgorithm = 'CambridgeAachen',
     rParam = cms.double(0.8),
     )
 
-process.patGenJetsAK8MatchRecluster = cms.EDProducer("GenJetMatcher",
-    src                   = cms.InputTag("selectedUpdatedPatJetsAK8DeepFlavour"),
-    matched               = cms.InputTag("ak8GenJetsRecluster"),
+process.patGenJetsCA8MatchRecluster = cms.EDProducer("GenJetMatcher",
+    #src                   = cms.InputTag("selectedUpdatedPatJetsCA8DeepFlavour"),
+    src                   = cms.InputTag("selectedPatJetsCA8DeepFlavour"),
+    matched               = cms.InputTag("ca8GenJetsRecluster"),
     mcPdgId               = cms.vint32(),
     mcStatus              = cms.vint32(),
     checkCharge           = cms.bool(False),
@@ -267,9 +297,10 @@ process.patGenJetsAK8MatchRecluster = cms.EDProducer("GenJetMatcher",
     resolveByMatchQuality = cms.bool(False),
     )
 
-process.patGenJetsAK8MatchWithNu = cms.EDProducer("GenJetMatcher",  
-    src                   = cms.InputTag("selectedUpdatedPatJetsAK8DeepFlavour"),      
-    matched               = cms.InputTag("ak8GenJetsWithNu"),
+process.patGenJetsCA8MatchWithNu = cms.EDProducer("GenJetMatcher",  
+    #src                   = cms.InputTag("selectedUpdatedPatJetsCA8DeepFlavour"),      
+    src                   = cms.InputTag("selectedPatJetsCA8DeepFlavour"),      
+    matched               = cms.InputTag("ca8GenJetsWithNu"),
     mcPdgId               = cms.vint32(), 
     mcStatus              = cms.vint32(), 
     checkCharge           = cms.bool(False), 
@@ -329,14 +360,14 @@ process.genJetSequence = cms.Sequence(process.packedGenParticlesForJetsNoNu
     #* process.ak4GenJetsRecluster
     #* process.patGenJetMatchWithNu 
     #* process.patGenJetMatchRecluster
-    * process.ak8GenJetsRecluster
-    * process.ak8GenJetsWithNu
+    * process.ca8GenJetsRecluster
+    * process.ca8GenJetsWithNu
     * process.genFatJetsSoftDropWithNu
     * process.genFatJetsSoftDropRecluster
     * process.patGenSubJetsMatchWithNu
     * process.patGenSubJetsMatchRecluster
-    * process.patGenJetsAK8MatchWithNu
-    * process.patGenJetsAK8MatchRecluster
+    * process.patGenJetsCA8MatchWithNu
+    * process.patGenJetsCA8MatchRecluster
     )
 
 # Very Loose IVF SV collection
@@ -380,26 +411,26 @@ process.deepntuplizerSj = process.deepntuplizer.clone(
     qgtagger = cms.string("QGTaggerSubJet"),
     )
 
-process.deepntuplizerAK8 = process.deepntuplizer.clone(
-    jets = cms.InputTag('selectedUpdatedPatJetsAK8DeepFlavour'),
+process.deepntuplizerCA8 = process.deepntuplizer.clone(
+    #jets = cms.InputTag('selectedUpdatedPatJetsCA8DeepFlavour'),
+    jets = cms.InputTag('selectedPatJetsCA8DeepFlavour'),
     jetPtMin = cms.double(20.0),
     jetR = cms.double(0.8),
-    genJetMatchWithNu = cms.InputTag('patGenJetsAK8MatchWithNu'),
-    genJetMatchRecluster = cms.InputTag('patGenJetsAK8MatchRecluster'),
-    #qgtagger = cms.string("QGTaggerAK8"),
+    genJetMatchWithNu = cms.InputTag('patGenJetsCA8MatchWithNu'),
+    genJetMatchRecluster = cms.InputTag('patGenJetsCA8MatchRecluster'),
+    #qgtagger = cms.string("QGTaggerCA8"),
     qgtagger = cms.string(""),
     )
-process.deepntuplizerAK8.bDiscriminators.append('pfBoostedDoubleSecondaryVertexAK8BJetTags')
+process.deepntuplizerCA8.bDiscriminators.append('pfBoostedDoubleSecondaryVertexCA8BJetTags')
 
 process.p = cms.Path(
     #  process.QGTagger 
-    #* 
-    process.QGTaggerSubJet
-    #* process.QGTaggerAK8 
-    * process.genJetSequence 
+    #* process.QGTaggerSubJet
+    #process.QGTaggerCA8 
+    process.genJetSequence 
     #* process.deepntuplizer
-    * process.deepntuplizerSj
-    * process.deepntuplizerAK8
+    #* process.deepntuplizerSj
+    * process.deepntuplizerCA8
     ) 
 
 open('dump.py', 'w').write(process.dumpPython())
