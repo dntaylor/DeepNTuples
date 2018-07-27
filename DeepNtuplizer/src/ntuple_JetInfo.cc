@@ -120,8 +120,8 @@ void ntuple_JetInfo::initBranches(TTree* tree){
 
     // in the jet
 
-    addBranch(tree,"muons_number", &muons_number_, "muons_number_/i");
-    addBranch(tree,"electrons_number", &electrons_number_, "electrons_number_/i");
+    addBranch(tree,"muons_number", &muons_number_, "muons_number_/f");
+    addBranch(tree,"electrons_number", &electrons_number_, "electrons_number_/f");
 
     addBranch(tree,"muons_isLooseMuon", &muons_isLooseMuon_, "muons_isLooseMuon_[muons_number_]/i");
     addBranch(tree,"muons_isTightMuon", &muons_isTightMuon_, "muons_isTightMuon_[muons_number_]/i");
